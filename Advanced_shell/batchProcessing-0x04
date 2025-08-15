@@ -1,27 +1,18 @@
 #!/bin/bash
 
-# Pokémon list
-POKEMONS=("Bulbasaur" "Ivysaur" "Venusaur" "Charmander" "Charmeleon")
+# Array of Pokémon to fetch
+pokemons=("pikachu" "bulbasaur" "charmander" "squirtle")
 
-# Array to store PIDs
-PIDS=()
-
-echo "Starting parallel Pokémon fetch..."
-
-for POKEMON in "${POKEMONS[@]}"; do
-    # Fetch data in background
-    curl -s "https://pokeapi.co/api/v2/pokemon/${POKEMON,,}" > "${POKEMON}.json" &
-    PID=$!
-    PIDS+=($PID)
-    echo "Fetching $POKEMON in background (PID: $PID)"
+# Start fetching in the background
+for p in "${pokemons[@]}"; do
+    curl -s "https://pokeapi.co/api/v2/pokemon/$p" > "$p.json" &
 done
 
-# Example: Kill the first process as a demonstration
-echo "Killing process with PID: ${PIDS[0]}"
-kill "${PIDS[0]}"
+# Show background jobs
+jobs
 
-# Wait for all remaining processes
-echo "Waiting for remaining processes to finish..."
+# Wait for all jobs to complete
 wait
 
-echo "All processes completed."
+# Optional: kill any remaining background processes (if necessary)
+kill $(jobs -p) 2>/dev/null

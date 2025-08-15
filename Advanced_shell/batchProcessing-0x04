@@ -1,36 +1,27 @@
 #!/bin/bash
 
-# List of Pokémon to fetch
-pokemon_list=("Bulbasaur" "Ivysaur" "Venusaur" "Charmander" "Charmeleon")
+# Pokémon list
+POKEMONS=("Bulbasaur" "Ivysaur" "Venusaur" "Charmander" "Charmeleon")
 
-# API base URL
-base_url="https://pokeapi.co/api/v2/pokemon"
+# Array to store PIDs
+PIDS=()
 
-echo "Fetching Pokémon data in parallel..."
+echo "Starting parallel Pokémon fetch..."
 
-# Loop through each Pokémon and fetch in background
-for pokemon in "${pokemon_list[@]}"; do
-    {
-        # Convert name to lowercase for API compatibility
-        lowercase_name=$(echo "$pokemon" | tr '[:upper:]' '[:lower:]')
-
-        # Fetch data from the API
-        response=$(curl -s "${base_url}/${lowercase_name}")
-
-        # Extract name, height, and weight using jq
-        name=$(echo "$response" | jq -r '.name')
-        height=$(echo "$response" | jq -r '.height')
-        weight=$(echo "$response" | jq -r '.weight')
-
-        # Convert to meters and kilograms
-        formatted_height=$(awk "BEGIN {print $height/10}")
-        formatted_weight=$(awk "BEGIN {print $weight/10}")
-
-        echo "$name is ${formatted_height}m tall and weighs ${formatted_weight}kg."
-    } &
+for POKEMON in "${POKEMONS[@]}"; do
+    # Fetch data in background
+    curl -s "https://pokeapi.co/api/v2/pokemon/${POKEMON,,}" > "${POKEMON}.json" &
+    PID=$!
+    PIDS+=($PID)
+    echo "Fetching $POKEMON in background (PID: $PID)"
 done
 
-# Wait for all background jobs to finish
+# Example: Kill the first process as a demonstration
+echo "Killing process with PID: ${PIDS[0]}"
+kill "${PIDS[0]}"
+
+# Wait for all remaining processes
+echo "Waiting for remaining processes to finish..."
 wait
 
-echo "✅ All Pokémon data retrieved."
+echo "All processes completed."
